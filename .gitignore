@@ -8,6 +8,9 @@
 # testing
 /coverage
 
+# development
+/src/tailwind.output.css
+
 # production
 /build
 
