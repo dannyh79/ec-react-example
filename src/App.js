@@ -1,25 +1,38 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { makeClient } from '@spree/storefront-api-v2-sdk';
+import ProductList from './product/ProductList';
 import './tailwind.output.css';
 
-function App() {
+const App = () => {
+  const [page, setPage] = useState(1);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const client = makeClient({
+      host: 'http://localhost:3000'
+    });
+
+    (async () => {
+      const productsIndexReq = await client.products.list({
+        include: 'default_variant',
+        page: page
+      });
+
+      if (productsIndexReq.isSuccess) {
+        const data = productsIndexReq.success().data.map(({ id, attributes }) => ({id, ...attributes}));
+        setProducts(data);
+      }
+    })();
+  }, [page])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <ProductList products={products} />
+      <div className="mt-4 mx-auto text-center">
+        <button onClick={() => setPage(page + 1)}>
+          Next Page
+        </button>
+      </div>
     </div>
   );
 }
