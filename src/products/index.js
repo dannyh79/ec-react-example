@@ -19,7 +19,7 @@ const Products = () => {
 
       if (productsIndexReq.isSuccess) {
         const data = productsIndexReq.success().data.map(({ id, attributes }) => ({id, ...attributes}));
-        setProducts(data);
+        setProducts(products => products.concat(data));
       }
     })();
   }, [page])
