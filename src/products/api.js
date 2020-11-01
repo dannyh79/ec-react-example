@@ -1,12 +1,11 @@
 import { makeClient } from '@spree/storefront-api-v2-sdk';
 
+const productsClient = makeClient({ host: 'http://localhost:3000' }).products
+
 const fetchProductsIndex = async (page) => {
-  const client = makeClient({
-    host: 'http://localhost:3000'
-  });
   let products;
 
-  const productsIndexRequest = await client.products.list({
+  const productsIndexRequest = await productsClient.list({
     include: 'default_variant',
     page: page
   });
@@ -18,4 +17,16 @@ const fetchProductsIndex = async (page) => {
   return products
 }
 
-export { fetchProductsIndex }
+const fetchProduct = async (itemId) => {
+  let product;
+
+  const productsIndexRequest = await productsClient.show(itemId);
+
+  if (productsIndexRequest.isSuccess) {
+    product = productsIndexRequest.success().data
+  }
+
+  return { id: itemId, ...product.attributes }
+}
+
+export { fetchProductsIndex, fetchProduct }
