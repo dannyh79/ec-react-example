@@ -1,34 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { makeClient } from '@spree/storefront-api-v2-sdk';
-import ProductList from './ProductList';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux'
+
+import { asyncFetch } from './redux';
+import ProductList from './ProductList'
 
 const Products = () => {
-  const [page, setPage] = useState(1);
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const client = makeClient({
-      host: 'http://localhost:3000'
-    });
-
-    (async () => {
-      const productsIndexReq = await client.products.list({
-        include: 'default_variant',
-        page: page
-      });
-
-      if (productsIndexReq.isSuccess) {
-        const data = productsIndexReq.success().data.map(({ id, attributes }) => ({id, ...attributes}));
-        setProducts(products => products.concat(data));
-      }
-    })();
-  }, [page])
+  const page = useSelector((state) => state.products.page);
+  const products = useSelector((state) => state.products.data);
+  const dispatch = useDispatch();
+  useEffect(() => { dispatch(asyncFetch(1)) }, [dispatch])
 
   return (
     <>
       <ProductList products={products} />
       <div className="mt-4 mx-auto text-center">
-        <button onClick={() => setPage(page + 1)}>
+        <button
+          onClick={() => {
+            dispatch(asyncFetch(page + 1))
+          }}>
           Next Page
         </button>
       </div>
