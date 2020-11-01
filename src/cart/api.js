@@ -27,4 +27,10 @@ const addItemToCart = async (orderToken, itemId) => {
   return response.success().data
 }
 
-export { fetchCart, addItemToCart }
+const removeItemFromCart = async (orderToken, itemId) => {
+  const response = await cartClient.removeItem({ orderToken }, itemId)
+
+  return response.success().data
+}
+
+export { fetchCart, addItemToCart, removeItemFromCart }

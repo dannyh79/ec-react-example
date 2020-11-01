@@ -1,14 +1,16 @@
-import { fetchCart, addItemToCart } from './api'
+import { fetchCart,
+         addItemToCart,
+         removeItemFromCart } from './api'
 import { fetchProduct } from '../products/api'
 
 const SET_CART = 'cart/SET_CART';
 const ADD_ITEM  = 'cart/ADD_ITEM';
-// const REMOVE_ITEM  = 'cart/REMOVE_ITEM';
+const REMOVE_ITEM  = 'cart/REMOVE_ITEM';
 
 const initState = {
   data: [],
   orderToken: '',
-  total: null
+  total: null,
 };
 
 const reducer = (state = initState, action) => {
@@ -24,7 +26,16 @@ const reducer = (state = initState, action) => {
       return {
         ...state,
         total: action.payload.attributes.total,
-        data: [...state.data, action.payload.product]
+        data: [...state.data, action.payload.product],
+      }
+    }
+    case REMOVE_ITEM: {
+      return {
+        ...state,
+        total: action.payload.attributes.total,
+        data: state.data.filter((item) => (
+          item.id !== action.payload.itemId
+        ))
       }
     }
     default:
@@ -48,6 +59,13 @@ export const addItem = (payload) => {
   }
 }
 
+export const removeItem = (payload) => {
+  return {
+    type: REMOVE_ITEM,
+    payload
+  }
+}
+
 export const asyncFetchCart = () => {
   return async (dispatch, getState) => {
     const token = getState().cart.orderToken;
@@ -61,7 +79,17 @@ export const asyncAddItemToCart = (itemId) => {
     const token = getState().cart.orderToken;
     const payload = await addItemToCart(token, itemId);
     const product = await fetchProduct(itemId);
-    payload.product = product
+    const relationIndex = payload.relationships.variants.data.findIndex((item) => item.id === itemId)
+    payload.product = { ...product, lineItemId: payload.relationships.line_items.data[relationIndex].id };
     dispatch(addItem(payload));
+  }
+}
+
+export const asyncRemoveItemFromCart = (itemId) => {
+  return async (dispatch, getState) => {
+    const token = getState().cart.orderToken;
+    const lineItemId = getState().cart.data.find((item) => item.id === itemId).lineItemId;
+    const payload = await removeItemFromCart(token, lineItemId);
+    dispatch(removeItem({ ...payload, itemId: itemId.toString() }));
   }
 }
