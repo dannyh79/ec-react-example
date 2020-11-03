@@ -18,17 +18,39 @@ const fetchCart = async (orderToken) => {
   return data
 }
 
-const addItemToCart = async (orderToken, itemId) => {
-  const response = await cartClient.addItem({ orderToken }, {
-    variant_id: itemId,
-    quantity: 1
-  })
+const addItemToCart = async (orderToken, itemId, desiredItemSize) => {
+  const cart = await fetchCart(orderToken);
+  const relationships = cart.relationships
+  const itemIndex = relationships.variants.data.findIndex((item) => item.id === itemId)
+
+  let response;
+  if (itemIndex !== -1) {
+    const lineItemId = relationships.line_items.data[itemIndex].id
+    response = await cartClient.setQuantity({ orderToken }, {
+      line_item_id: lineItemId,
+      quantity: desiredItemSize
+    })
+  } else {
+    response = await cartClient.addItem({ orderToken }, {
+      variant_id: itemId,
+      quantity: 1
+    })
+  }
 
   return response.success().data
 }
 
-const removeItemFromCart = async (orderToken, itemId) => {
-  const response = await cartClient.removeItem({ orderToken }, itemId)
+// FIXME: server responds 404 upon removin last item in cart
+const removeItemFromCart = async (orderToken, lineItemId, desiredItemSize) => {
+  let response;
+  if (desiredItemSize === 0) {
+    response = await cartClient.removeItem({ orderToken }, lineItemId)
+  } else {
+    response = await cartClient.setQuantity({ orderToken }, {
+      line_item_id: lineItemId,
+      quantity: desiredItemSize
+    })
+  }
 
   return response.success().data
 }

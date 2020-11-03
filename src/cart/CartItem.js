@@ -1,6 +1,8 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { asyncRemoveItemFromCart } from './redux';
+
+import { asyncAddItemToCart,
+         asyncRemoveItemFromCart } from './redux';
 
 const CartItem = ({ product }) => {
   const dispatch = useDispatch();
@@ -8,8 +10,9 @@ const CartItem = ({ product }) => {
   return (
     <li>
       <div>
-        <span>{product.name} * {/* count */}</span>
-        <button onClick={() => dispatch(asyncRemoveItemFromCart(product.id))}>-</button>
+        <span>{product.name} * {product.size}</span>
+        <button onClick={() => dispatch(asyncAddItemToCart(product.id))}>[+]</button>
+        <button onClick={() => dispatch(asyncRemoveItemFromCart(product.id))}>[-]</button>
       </div>
     </li>
 )}
